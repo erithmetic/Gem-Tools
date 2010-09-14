@@ -1,0 +1,13 @@
+#!/bin/bash
+
+CORE_TECHNOLOGY_GEM_EMAILS=("seamus@abshere.net" "gemcutter@rossmeissl.net" "dkastner@gmail.com")
+
+function add_owners () {
+  name=`gemname`
+  echo "$owners"
+  echo "Owners for gem $name"
+  for owner in "$CORE_TECHNOLOGY_GEM_EMAILS"; do
+    echo "Adding $owner"
+    gem owner "$name" --add "$owner"
+  done
+}

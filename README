@@ -1,0 +1,12 @@
+= Brighter Planet Gem Tools
+
+= Installation
+
+Add this line to your ~/.bash_profile:
+  source ~/gemtools/lib/gemtools
+
+= Command Reference
+
+== add_owners
+
+Adds Seamus, Andy, and Derek by default, assuming the gem has been registered and the current directory is named the same as the gem.
