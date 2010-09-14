@@ -2,5 +2,6 @@
 
 DIR=`dirname ${BASH_SOURCE[0]}`
 
+source $DIR/devgems
 source $DIR/gem
 source $DIR/owners

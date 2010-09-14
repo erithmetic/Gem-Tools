@@ -1,0 +1,45 @@
+#!/bin/bash
+
+function devgems () {
+  # Usage: devgems [enable|disable] [gemname]
+  cmd=${1:-"enable"}
+
+  if [ "$1" == "list" ]
+  then
+    env | grep LOCAL
+    return
+  fi
+
+  if [ -z $2 ]
+  then
+    mod_devgem $cmd characterizable
+    mod_devgem $cmd cohort_scope
+    mod_devgem $cmd falls_back_on
+    mod_devgem $cmd leap
+    mod_devgem $cmd loose_tight_dictionary
+    mod_devgem $cmd sniff
+    mod_devgem $cmd data_miner
+    mod_devgem $cmd earth
+  else
+    mod_devgem $cmd $2
+  fi
+
+  export NOBUNDLE=true
+  rake gemspec
+  unset NOBUNDLE
+}
+
+
+function mod_devgem() {
+  var="LOCAL_`echo $2 | tr 'a-z' 'A-Z'`"
+
+  if [ "$1" == "disable" ]
+  then
+    echo "unset $var"
+    unset $var
+  else
+    dir=${3:-"~/$2"}
+    echo "export $var=$dir"
+    export $var=$dir
+  fi
+}
