@@ -1,0 +1,26 @@
+#!/bin/bash
+
+function gemserver () {
+  case $1 in
+    i|init)  gemserver-init  ;;
+    x|index) gemserver-index ;;
+    s|start) gemserver-start ;;
+    *) echo "Unrecognized command line option '$1' for gemserver" ; return 1 ;;
+  esac
+}
+
+function gemserver-init () {
+  gemdir=`gem env gemdir`
+  mkdir -p ~/gem_repo/gems
+  cp  $gemdir/cache/*.gem ~/gem_repo/gems/
+
+  gemserver-index
+}
+
+function gemserver-index () {
+  gem generate_index --directory ~/gem_repo/gems/
+}
+
+function gemserver-start () {
+  gem server
+}
