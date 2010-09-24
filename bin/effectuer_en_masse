@@ -1,0 +1,78 @@
+#!/bin/bash
+
+function del_matching_line () {
+  file=$1
+  pattern=$2
+  extra_line=$3
+
+  line_to_delete=`grep "$pattern" "$file" -n | awk 'BEGIN { FS = ":" } ; { print $1 }'`
+  sed -i '' "${line_to_delete}d" $file
+
+  if [[ $extra_line == "yes" ]]; then
+    sed -i '' "${line_to_delete}d" $file
+  fi
+}
+
+function upgrade () {
+    emitter=$1
+    git reset --hard
+
+#    git rm -f lib/test_support/db/schema.rb
+#    sed -e "s/add_development_dependency 'sniff', '[^']*'/add_development_dependency 'sniff', '~>0.2.0'/" -i .sed Rakefile
+    NOBUNDLE=true rake gemspec
+    bundle update
+    git add Rakefile Gemfile.lock $emitter.gemspec
+    git commit -m "Upgraded to latest sniff" --amend
+}
+
+function rm_sed () {
+  emitter=$1
+
+  git rm -f lib/$emitter/carbon_model.rb.sed
+  git commit -m "Upgraded emitter" --amend
+}
+
+function copy_fixtures_to_cm1 () {
+  emitter=$1
+  mkdir -p ~/cm1/spec/fixtures/$emitter
+  cp ~/$emitter/lib/test_support/db/fixtures/* ~/cm1/spec/fixtures/$emitter
+}
+
+
+directory=
+commands=()
+while [ "$1" != "" ]; do
+  case $1 in
+    --directory )
+      shift
+      directory=$1
+      ;;
+    * ) 
+      newcmd=($1)
+      commands=( ${commands[@]} ${newcmd[@]} )
+      ;;
+  esac
+  shift
+done
+
+if [[ $directory == '' ]]; then
+  for file in `find . -type l`; do
+    case $file in
+      .|..)
+        echo "Skipping $file"
+        ;;
+      *)
+        emitter=`basename $file`
+        echo "Processing $emitter in $file"
+        for command in $commands; do
+          `$command $emitter`
+        done
+        ;;
+    esac
+  done
+else
+  emitter=`basename ``pwd```
+  for command in commands; do
+    `$command $emitter`
+  done
+fi
