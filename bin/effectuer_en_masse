@@ -13,16 +13,18 @@ function del_matching_line () {
   fi
 }
 
-function upgrade () {
+function upgrade_gem () {
     emitter=$1
-    git reset --hard
+    git tag ruby187
+    git push --tags
+    git fetch origin
+    git reset --hard origin/master
 
-#    git rm -f lib/test_support/db/schema.rb
-#    sed -e "s/add_development_dependency 'sniff', '[^']*'/add_development_dependency 'sniff', '~>0.2.0'/" -i .sed Rakefile
+    sed -e "s/add_dependency 'emitter', '[^']*'/add_dependency 'emitter', '~>0.1.7'/" -i .sed Rakefile
     NOBUNDLE=true rake gemspec
     bundle update
     git add Rakefile Gemfile.lock $emitter.gemspec
-    git commit -m "Upgraded to latest sniff" --amend
+    git commit -m "Upgraded to latest emitter" --amend
 }
 
 function rm_sed () {
@@ -36,6 +38,42 @@ function copy_fixtures_to_cm1 () {
   emitter=$1
   mkdir -p ~/cm1/spec/fixtures/$emitter
   cp ~/$emitter/lib/test_support/db/fixtures/* ~/cm1/spec/fixtures/$emitter
+}
+
+function license () {
+  emitter=$1
+  cp ~/gemtools/agpl-3.0.txt ~/$emitter/LICENSE
+}
+
+function git_status () {
+  emitter=$1
+
+  git status
+}
+
+function git_add_commit_rebase () {
+  emitter=$1
+
+#  git add LICENSE
+#  git commit -m "Changed LICENSE to AGPL"
+#  if $?; then
+   git push origin master
+#  else
+#    echo "$emitter failed to rebase"
+#  fi
+}
+
+function add_copyright_to_carbon_model () {
+  cp lib/$emitter/carbon_model.rb /tmp/carbon_model.rb
+
+  sed -i '' "
+  1i\\
+# Copyright © 2010 Brighter Planet.\\
+# See LICENSE for details.\\
+# Contact Brighter Planet for dual-license arrangements.\\
+\\
+" /tmp/carbon_model.rb
+  cp /tmp/carbon_model.rb lib/$emitter/carbon_model.rb
 }
 
 
@@ -64,9 +102,15 @@ if [[ $directory == '' ]]; then
       *)
         emitter=`basename $file`
         echo "Processing $emitter in $file"
+
+        cwd=`pwd`
+        cd $file
         for command in $commands; do
-          `$command $emitter`
+          echo "Running $command"
+          $command $emitter
         done
+        cd $cwd
+
         ;;
     esac
   done
